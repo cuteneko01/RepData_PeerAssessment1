@@ -94,26 +94,19 @@ As missing values come from missingness on eight whole days, imputing missing va
 
 ```r
 library(lubridate)
+library(ggplot2)
 imputed$weekday<-weekdays(as.Date(imputed$date))
 imputed$weekday<-as.factor(if_else(imputed$weekday %in% c("Monday","Tuesday","Wednesday","Thursday","Friday"), "Weekday", "Weekend"))
 imputed<-select(imputed,-avgSteps)
-imputed$interval<-as.POSIXlt(strptime(imputed$interval,"%H:%M"),"%H:%M")
+imputed$interval<-as.POSIXct(strptime(imputed$interval,"%H:%M"),"%H:%M")
 stepsByInterval<-imputed%>%group_by(weekday,interval)%>%summarize(avgSteps=mean(steps))
-par(mfrow=c(1,2))
-plot(stepsByInterval[stepsByInterval$weekday=="Weekday",]$interval,
-     stepsByInterval[stepsByInterval$weekday=="Weekday",]$avgSteps,
-     type = "l",
-     xlab="Time",
-     ylab="Average steps",
-     ylim=c(0,250))
-title(main=list("Average steps taken over weekday", cex=1))
-plot(stepsByInterval[stepsByInterval$weekday=="Weekend",]$interval,
-     stepsByInterval[stepsByInterval$weekday=="Weekend",]$avgSteps,
-     type = "l",
-     xlab="Time",
-     ylab="Average steps",
-     ylim=c(0,250))
-title(main=list("Average steps taken over weekend", cex=1))
+ggplot(aes(interval,avgSteps),data=stepsByInterval)+geom_line()+
+  scale_x_datetime(date_labels="%H:%M")+
+  facet_wrap(~weekday,nrow=2,ncol=1)+
+  xlab("Time")+ylab("Average steps")+
+  ggtitle("Average steps taken over a day")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ![](./instructions_fig/unnamed-chunk-3-1.png)<!-- -->
